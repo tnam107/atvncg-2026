@@ -1,0 +1,48 @@
+{
+  "name": "atvncg-2026-fandom",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "postinstall": "prisma generate",
+    "start": "next start",
+    "lint": "eslint .",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
+    "@prisma/client": "^6.7.0",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-select": "^2.2.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cloudinary": "^2.6.1",
+    "framer-motion": "^12.12.1",
+    "lucide-react": "^0.511.0",
+    "next": "16.3.4",
+    "prisma": "^6.7.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-hook-form": "^7.56.4",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.3.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.7",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "16.3.4",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@11.5.2"
+}
