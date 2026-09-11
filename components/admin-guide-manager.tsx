@@ -85,13 +85,13 @@ export function AdminGuideManager() {
       role: artistDraft.role,
       content: artistDraft.content,
       imageUrl: artistDraft.imageUrl,
-    }, `Đã cập nhật sổ tay ${artistDraft.name}.`);
+    }, `Đã cập nhật hồ sơ ${artistDraft.name}.`);
     if (ok) setArtistDraft(null);
   }
 
   async function clearArtist(artist: Pick<GuideArtist, "slug" | "name">) {
-    if (!window.confirm(`Đưa sổ tay ${artist.name} về trạng thái trống?`)) return;
-    if (await mutate({ action: "DELETE_ARTIST", slug: artist.slug }, `Đã để trống sổ tay ${artist.name}.`)) setArtistDraft(null);
+    if (!window.confirm(`Đưa hồ sơ ${artist.name} về trạng thái trống?`)) return;
+    if (await mutate({ action: "DELETE_ARTIST", slug: artist.slug }, `Đã để trống hồ sơ ${artist.name}.`)) setArtistDraft(null);
   }
 
   async function saveGlossary(event: React.FormEvent) {
@@ -130,7 +130,7 @@ export function AdminGuideManager() {
   }
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    { id: "ARTISTS", label: "Sổ tay Anh Tài", count: content?.artists.length || 0 },
+    { id: "ARTISTS", label: "Hồ sơ Fan Guide", count: content?.artists.length || 0 },
     { id: "GLOSSARY", label: "Từ điển Gai Con", count: content?.glossary.length || 0 },
     { id: "EPISODES", label: "Series phát sóng", count: content?.episodes.length || 0 },
   ];
@@ -208,16 +208,16 @@ export function AdminGuideManager() {
 
       <Dialog open={Boolean(artistDraft)} onOpenChange={(open) => !open && setArtistDraft(null)}>
         <DialogContent className="max-w-2xl">
-          <DialogTitle>Cập nhật sổ tay {artistDraft?.name}</DialogTitle>
-          <DialogDescription>Thêm vai trò, nội dung giới thiệu và có thể thay ảnh đại diện mặc định.</DialogDescription>
+          <DialogTitle>Cập nhật hồ sơ {artistDraft?.name}</DialogTitle>
+          <DialogDescription>Quản lý thông tin của 34 Anh Tài và 4 thành viên ekip; có thể thay ảnh đại diện mặc định.</DialogDescription>
           {artistDraft ? (
             <form onSubmit={saveArtist} className="mt-6 grid gap-4">
               <label><span className="mb-2 block text-sm font-bold text-stone-700">Vai trò / nghề nghiệp</span><Input value={artistDraft.role || ""} onChange={(event) => setArtistDraft({ ...artistDraft, role: event.target.value })} placeholder="Ví dụ: Ca sĩ · Nhạc sĩ" /></label>
               <label><span className="mb-2 block text-sm font-bold text-stone-700">URL ảnh đại diện</span><Input type="url" value={artistDraft.imageUrl} onChange={(event) => setArtistDraft({ ...artistDraft, imageUrl: event.target.value })} required /></label>
-              <label><span className="mb-2 block text-sm font-bold text-stone-700">Nội dung sổ tay</span><Textarea className="min-h-48" value={artistDraft.content || ""} onChange={(event) => setArtistDraft({ ...artistDraft, content: event.target.value })} minLength={3} required placeholder="Câu chuyện, hành trình hoặc thông tin bạn muốn chia sẻ…" /></label>
+              <label><span className="mb-2 block text-sm font-bold text-stone-700">Nội dung hồ sơ</span><Textarea className="min-h-48" value={artistDraft.content || ""} onChange={(event) => setArtistDraft({ ...artistDraft, content: event.target.value })} minLength={3} required placeholder="Câu chuyện, hành trình hoặc thông tin bạn muốn chia sẻ…" /></label>
               <div className="flex flex-wrap justify-between gap-3">
-                <Button type="button" variant="danger" onClick={() => clearArtist(artistDraft)} disabled={saving || !content?.artists.find((item) => item.slug === artistDraft.slug)?.hasProfile}><RotateCcw size={16} /> Để trống sổ tay</Button>
-                <Button type="submit" disabled={saving}>{saving ? <LoaderCircle size={16} className="animate-spin" /> : <BookOpenText size={16} />} Lưu sổ tay</Button>
+                <Button type="button" variant="danger" onClick={() => clearArtist(artistDraft)} disabled={saving || !content?.artists.find((item) => item.slug === artistDraft.slug)?.hasProfile}><RotateCcw size={16} /> Để trống hồ sơ</Button>
+                <Button type="submit" disabled={saving}>{saving ? <LoaderCircle size={16} className="animate-spin" /> : <BookOpenText size={16} />} Lưu hồ sơ</Button>
               </div>
             </form>
           ) : null}

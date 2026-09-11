@@ -3,6 +3,19 @@ import { z } from "zod";
 export const submissionTypeSchema = z.enum(["LETTER", "MEMORY", "FANMADE", "CALL"]);
 export const mediaTypeSchema = z.enum(["IMAGE", "VIDEO"]);
 
+const cloudinaryUrlSchema = z
+  .string()
+  .url("Đường dẫn tệp không hợp lệ")
+  .max(1000)
+  .refine((value) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && url.hostname === "res.cloudinary.com";
+    } catch {
+      return false;
+    }
+  }, "Tệp phải là đường dẫn HTTPS từ Cloudinary");
+
 export const submissionSchema = z
   .object({
     type: submissionTypeSchema,
@@ -14,24 +27,24 @@ export const submissionSchema = z
       .trim()
       .min(3, "Nội dung cần ít nhất 3 ký tự")
       .max(3000, "Nội dung tối đa 3.000 ký tự"),
-    mediaUrl: z
-      .string()
-      .url("Đường dẫn media không hợp lệ")
-      .max(1000)
-      .refine((value) => {
-        const url = new URL(value);
-        return url.protocol === "https:" && url.hostname === "res.cloudinary.com";
-      }, "Media phải là đường dẫn HTTPS từ Cloudinary")
-      .optional()
-      .nullable(),
+    mediaUrl: cloudinaryUrlSchema.optional().nullable(),
     mediaType: mediaTypeSchema.optional().nullable(),
+    proofUrl: cloudinaryUrlSchema.optional().nullable(),
+    proofFileName: z.string().trim().max(255).optional().nullable(),
   })
   .superRefine((data, ctx) => {
     if (["MEMORY", "FANMADE", "CALL"].includes(data.type) && !data.mediaUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["mediaUrl"],
-        message: data.type === "CALL" ? "Cần tải lên minh chứng phê duyệt" : "Hãy chọn một ảnh hoặc video",
+        message: "Hãy chọn một ảnh hoặc video đại diện",
+      });
+    }
+    if (["FANMADE", "CALL"].includes(data.type) && !data.proofUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["proofUrl"],
+        message: data.type === "CALL" ? "Cần tải minh chứng cấp duyệt project" : "Cần tải minh chứng sản phẩm chính chủ",
       });
     }
     if (["FANMADE", "CALL"].includes(data.type) && !data.title) {
@@ -40,6 +53,26 @@ export const submissionSchema = z
         path: ["title"],
         message: "Hãy nhập tiêu đề",
       });
+    }
+    if (data.type === "CALL") {
+      const requiredLabels = [
+        "Tên FC / nhóm tổ chức",
+        "Đại diện chịu trách nhiệm",
+        "Mục đích",
+        "Thời hạn và target",
+        "Kênh liên hệ chính thức",
+      ];
+      const lines = data.content.split("\n").map((line) => line.trim());
+      const isComplete = requiredLabels.every((label) =>
+        lines.some((line) => line.startsWith(`${label}:`) && line.slice(label.length + 1).trim().length > 0),
+      );
+      if (!isComplete) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["content"],
+          message: "Cần điền đủ thông tin đơn vị tổ chức, đại diện, mục đích, thời hạn/target và kênh liên hệ",
+        });
+      }
     }
   });
 

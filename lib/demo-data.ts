@@ -76,7 +76,7 @@ export const demoMemories: PublicSubmission[] = [
     authorName: "Nhà Cam",
     targetId: null,
     title: "Biển lightstick",
-    content: "Khoảnh khắc cả khán đài cùng sáng lên — nổi da gà thật sự.",
+    content: "Khoảnh khắc cả khán đài cùng sáng lên - nổi da gà thật sự.",
     mediaUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=85",
     mediaType: "IMAGE",
     likesCount: 486,

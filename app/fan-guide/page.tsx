@@ -14,8 +14,8 @@ export default async function FanGuidePage() {
     <>
       <PageHero
         eyebrow="Sổ tay hướng dẫn"
-        title="Bắt nhịp hành trình, từ những điều nhỏ nhất."
-        description="Làm quen với đủ 34 Anh Tài, theo dõi từng tập và giải mã ngôn ngữ riêng của Gai Con."
+        title="Kho lưu trữ."
+        description="Cung cấp những thông tin cơ bản về chương trình và các Anh Tài, giải mã những ngôn ngữ fandom của Gai Con."
         icon={BookOpenText}
       />
       <FanGuideContent content={content} />

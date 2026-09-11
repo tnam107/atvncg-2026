@@ -1,4 +1,4 @@
-import { artistCatalog, type ArtistProfileValue } from "@/lib/guide-catalog";
+import { guidePeopleCatalog, type ArtistProfileValue } from "@/lib/guide-catalog";
 import {
   localGetGuideContent,
   localMutateGuideContent,
@@ -8,12 +8,12 @@ import { databaseConfigured, isProduction, prisma } from "@/lib/prisma";
 import type { GuideArtist, GuideContent } from "@/lib/types";
 
 function mergeArtists(profiles: Map<string, ArtistProfileValue>): GuideArtist[] {
-  return artistCatalog.map((artist) => {
+  return guidePeopleCatalog.map((artist) => {
     const profile = profiles.get(artist.slug);
     return {
       ...artist,
       imageUrl: profile?.imageUrl || artist.imageUrl,
-      role: profile?.role || null,
+      role: profile?.role || artist.defaultRole || null,
       content: profile?.content || null,
       hasProfile: Boolean(profile?.content),
     };

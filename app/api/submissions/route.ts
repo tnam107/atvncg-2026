@@ -25,6 +25,18 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { createdAt: "desc" },
       take: 100,
+      select: {
+        id: true,
+        type: true,
+        authorName: true,
+        targetId: true,
+        title: true,
+        content: true,
+        mediaUrl: true,
+        mediaType: true,
+        likesCount: true,
+        createdAt: true,
+      },
     });
     return NextResponse.json({ items });
   } catch (error) {

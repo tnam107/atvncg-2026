@@ -5,7 +5,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { demoCalls, demoFanmade, demoLetters, demoMemories, demoPending } from "@/lib/demo-data";
-import { artistCatalog, seedArtistProfiles, seedEpisodes, seedGlossary } from "@/lib/guide-catalog";
+import { guidePeopleCatalog, seedArtistProfiles, seedEpisodes, seedGlossary } from "@/lib/guide-catalog";
 import type { SubmissionInput } from "@/lib/validation";
 import type {
   GuideContent,
@@ -35,6 +35,8 @@ type SubmissionRow = {
   content: string;
   media_url: string | null;
   media_type: "IMAGE" | "VIDEO" | null;
+  proof_url: string | null;
+  proof_file_name: string | null;
   status: SubmissionStatusValue;
   admin_note: string | null;
   likes_count: number;
@@ -106,6 +108,8 @@ function getLocalDatabase() {
       content TEXT NOT NULL,
       media_url TEXT,
       media_type TEXT,
+      proof_url TEXT,
+      proof_file_name TEXT,
       status TEXT NOT NULL DEFAULT 'PENDING',
       admin_note TEXT,
       likes_count INTEGER NOT NULL DEFAULT 0,
@@ -145,6 +149,13 @@ function getLocalDatabase() {
       updated_at TEXT NOT NULL
     );
   `);
+  const submissionColumns = created.prepare("PRAGMA table_info(submission)").all() as unknown as { name: string }[];
+  if (!submissionColumns.some((column) => column.name === "proof_url")) {
+    created.exec("ALTER TABLE submission ADD COLUMN proof_url TEXT");
+  }
+  if (!submissionColumns.some((column) => column.name === "proof_file_name")) {
+    created.exec("ALTER TABLE submission ADD COLUMN proof_file_name TEXT");
+  }
   seedLocalDatabase(created);
   globalLocalDatabase.atvncgLocalDatabase = created;
   return created;
@@ -158,7 +169,7 @@ const database = new Proxy({} as DatabaseSync, {
   },
 });
 
-function mapSubmission(row: SubmissionRow): PublicSubmission {
+function mapSubmission(row: SubmissionRow, includePrivate = true): PublicSubmission {
   return {
     id: row.id,
     type: row.type,
@@ -168,8 +179,12 @@ function mapSubmission(row: SubmissionRow): PublicSubmission {
     content: row.content,
     mediaUrl: row.media_url,
     mediaType: row.media_type,
-    status: row.status,
-    adminNote: row.admin_note,
+    ...(includePrivate ? {
+      proofUrl: row.proof_url,
+      proofFileName: row.proof_file_name,
+      status: row.status,
+      adminNote: row.admin_note,
+    } : {}),
     likesCount: row.likes_count,
     createdAt: row.created_at,
   };
@@ -181,21 +196,21 @@ export function localListPublicSubmissions(type?: SubmissionTypeValue, target?: 
   if (type) { conditions.push("type = ?"); values.push(type); }
   if (target && target !== "ALL") { conditions.push("target_id = ?"); values.push(target); }
   const rows = database.prepare(`SELECT * FROM submission WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC LIMIT 100`).all(...values) as unknown as SubmissionRow[];
-  return rows.map(mapSubmission);
+  return rows.map((row) => mapSubmission(row, false));
 }
 
 export function localListAdminSubmissions() {
   const rows = database.prepare("SELECT * FROM submission ORDER BY status ASC, created_at DESC LIMIT 200").all() as unknown as SubmissionRow[];
-  return rows.map(mapSubmission);
+  return rows.map((row) => mapSubmission(row));
 }
 
 export function localCreateSubmission(input: SubmissionInput) {
   const id = randomUUID();
   const now = new Date().toISOString();
   database.prepare(`
-    INSERT INTO submission (id, type, author_name, target_id, title, content, media_url, media_type, status, admin_note, likes_count, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NULL, 0, ?, ?)
-  `).run(id, input.type, input.authorName, input.targetId || null, input.title || null, input.content, input.mediaUrl || null, input.mediaType || null, now, now);
+    INSERT INTO submission (id, type, author_name, target_id, title, content, media_url, media_type, proof_url, proof_file_name, status, admin_note, likes_count, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NULL, 0, ?, ?)
+  `).run(id, input.type, input.authorName, input.targetId || null, input.title || null, input.content, input.mediaUrl || null, input.mediaType || null, input.proofUrl || null, input.proofFileName || null, now, now);
   return mapSubmission(database.prepare("SELECT * FROM submission WHERE id = ?").get(id) as unknown as SubmissionRow);
 }
 
@@ -221,12 +236,12 @@ export function localGetGuideContent(): GuideContent {
   const glossaryRows = database.prepare("SELECT id, term, definition, sort_order FROM glossary_term ORDER BY sort_order ASC, term ASC").all() as unknown as GlossaryRow[];
   const episodeRows = database.prepare("SELECT id, episode_number, title, description, image_url, youtube_url FROM episode_guide ORDER BY episode_number ASC").all() as unknown as EpisodeRow[];
   return {
-    artists: artistCatalog.map((artist) => {
+    artists: guidePeopleCatalog.map((artist) => {
       const profile = profiles.get(artist.slug);
       return {
         ...artist,
         imageUrl: profile?.image_url || artist.imageUrl,
-        role: profile?.role || null,
+        role: profile?.role || artist.defaultRole || null,
         content: profile?.content || null,
         hasProfile: Boolean(profile?.content),
       };

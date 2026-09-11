@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Camera, Flame, FolderHeart, Mail, Megaphone, Sparkles } from "lucide-react";
 import { Countdown } from "@/components/countdown";
+import { SitePrinciples } from "@/components/site-principles";
 
 const spaces = [
   { href: "/fan-guide", icon: BookOpenText, number: "01", title: "Fan Guide", vi: "Sổ tay Gai Con", text: "Hồ sơ Anh Tài, lịch phát sóng và từ điển fandom.", className: "bg-[#ffe4bd] md:col-span-2" },
@@ -21,10 +22,9 @@ export default function HomePage() {
           <div className="relative z-10">
             <span className="eyebrow"><Sparkles size={14} /> Fandom hub · 2026</span>
             <h1 className="display-title mt-6 text-stone-950">Gai Con<br />ở <span className="text-orange-600">đây.</span></h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-stone-600">Một góc ấm để đọc, viết, lưu giữ và cùng nhau tiếp lửa cho hành trình <strong className="text-stone-900">Anh Trai Vượt Ngàn Chông Gai 2026.</strong></p>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-stone-600">Website ATVNCG 2026 Fandom là một không gian trực tuyến dành cho những người yêu thích và hâm mộ chương trình <strong className="text-stone-900">Anh Trai Vượt Ngàn Chông Gai 2026.</strong></p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="#kham-pha" className="inline-flex h-13 items-center gap-2 rounded-full bg-orange-600 px-7 text-base font-extrabold text-white shadow-[0_12px_30px_rgba(234,88,12,.28)] transition hover:-translate-y-0.5 hover:bg-orange-700">Khám phá ngay <ArrowRight size={18} /></Link>
-              <Link href="/fan-dear" className="inline-flex h-13 items-center gap-2 rounded-full border border-orange-200 bg-white px-7 text-base font-extrabold text-stone-800 transition hover:border-orange-400"><Mail size={18} /> Viết tâm thư</Link>
             </div>
           </div>
 
@@ -49,7 +49,7 @@ export default function HomePage() {
       <section id="kham-pha" className="container-shell scroll-mt-24 py-24">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div><span className="eyebrow">Năm góc nhỏ</span><h2 className="section-title mt-4">Chọn nơi bạn muốn ghé.</h2></div>
-          <p className="max-w-sm text-sm leading-6 text-stone-500">Không cần đăng nhập. Chỉ cần một biệt danh — hoặc cứ là Ẩn danh nếu bạn muốn.</p>
+          <p className="max-w-sm text-sm leading-6 text-stone-500">Không cần đăng nhập. Chỉ cần một biệt danh - hoặc cứ là Ẩn danh nếu bạn muốn.</p>
         </div>
         <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {spaces.map(({ href, icon: Icon, number, title, vi, text, className }) => (
@@ -67,14 +67,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="container-shell pb-8">
-        <div className="relative overflow-hidden rounded-[36px] bg-orange-600 px-7 py-14 text-white md:px-14 md:py-18">
-          <div className="absolute -right-20 -top-28 size-80 rounded-full border-[60px] border-white/10" />
-          <Camera size={28} />
-          <h2 className="mt-6 max-w-2xl text-4xl font-black tracking-[-.05em] md:text-6xl">Kỷ niệm đẹp hơn khi được sẻ chia.</h2>
-          <p className="mt-5 max-w-lg text-base leading-7 text-orange-100">Mỗi bài gửi đều được đội ngũ quản trị xem trước khi xuất hiện, để đây luôn là một không gian ấm và an toàn.</p>
-        </div>
-      </section>
+      <SitePrinciples />
     </>
   );
 }

@@ -11,6 +11,8 @@ export type PublicSubmission = {
   content: string;
   mediaUrl: string | null;
   mediaType: MediaTypeValue | null;
+  proofUrl?: string | null;
+  proofFileName?: string | null;
   status?: SubmissionStatusValue;
   adminNote?: string | null;
   likesCount: number;
@@ -21,6 +23,7 @@ export type GuideArtist = {
   slug: string;
   name: string;
   imageUrl: string;
+  category: "ARTIST" | "CREW";
   role: string | null;
   content: string | null;
   hasProfile: boolean;

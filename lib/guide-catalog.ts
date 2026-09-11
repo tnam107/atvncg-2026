@@ -1,6 +1,10 @@
 import type { GuideArtist, GuideEpisode, GuideGlossaryTerm } from "@/lib/types";
 
 type ArtistCatalogItem = Pick<GuideArtist, "slug" | "name" | "imageUrl">;
+type GuidePersonCatalogItem = ArtistCatalogItem & {
+  category: GuideArtist["category"];
+  defaultRole?: string;
+};
 export type ArtistProfileValue = { role: string | null; content: string; imageUrl: string | null };
 
 const thumbnail = (videoId: string) => `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
@@ -42,9 +46,42 @@ const unsortedArtistCatalog: ArtistCatalogItem[] = [
   { slug: "will", name: "Will", imageUrl: thumbnail("e5YzcF-c22M") },
 ];
 
-export const artistCatalog = [...unsortedArtistCatalog].sort((a, b) =>
-  a.name.localeCompare(b.name, "vi"),
-);
+export const artistCatalog: GuidePersonCatalogItem[] = [...unsortedArtistCatalog]
+  .sort((a, b) => a.name.localeCompare(b.name, "vi"))
+  .map((artist) => ({ ...artist, category: "ARTIST" }));
+
+export const crewCatalog: GuidePersonCatalogItem[] = [
+  {
+    slug: "mc-anh-tuan",
+    name: "Anh Tuấn",
+    imageUrl: thumbnail("8gPXKl3BpMc"),
+    category: "CREW" as const,
+    defaultRole: "MC",
+  },
+  {
+    slug: "dao-dien-dinh-ha-uyen-thu",
+    name: "Đinh Hà Uyên Thư",
+    imageUrl: thumbnail("AXCczcyNCoQ"),
+    category: "CREW" as const,
+    defaultRole: "Đạo diễn sân khấu",
+  },
+  {
+    slug: "giam-doc-am-nhac-slimv",
+    name: "SlimV",
+    imageUrl: thumbnail("JHz8XPUO8Bk"),
+    category: "CREW" as const,
+    defaultRole: "Giám đốc âm nhạc",
+  },
+  {
+    slug: "mc-tran-ngoc",
+    name: "Trần Ngọc",
+    imageUrl: thumbnail("dXkw0uMUBYs"),
+    category: "CREW" as const,
+    defaultRole: "MC",
+  },
+].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+
+export const guidePeopleCatalog = [...artistCatalog, ...crewCatalog];
 
 export const seedArtistProfiles: Record<string, ArtistProfileValue> = {
   "ha-an-huy": {
@@ -95,7 +132,7 @@ export const seedGlossary: GuideGlossaryTerm[] = [
   {
     id: "seed-chong-gai",
     term: "Chông gai",
-    definition: "Thử thách để cùng nhau trưởng thành — và cũng là nơi kỷ niệm bắt đầu.",
+    definition: "Thử thách để cùng nhau trưởng thành - và cũng là nơi kỷ niệm bắt đầu.",
     sortOrder: 4,
   },
 ];

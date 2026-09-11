@@ -99,7 +99,7 @@ Tạo `ADMIN_SESSION_SECRET` trong PowerShell bằng:
 node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
 ```
 
-Nếu cần upload ảnh/video từ form cộng đồng, thêm tiếp năm biến Cloudinary trong `.env.example`.
+Để các form Fan Frame, Fan Made và Fan Calls tải được ảnh, video và file minh chứng, cấu hình thêm bốn biến Cloudinary theo mục 5 bên dưới.
 
 5. Nhấn **Deploy**. Lệnh `vercel-build` của dự án sẽ tự tạo Prisma Client, áp dụng migration vào Neon và build Next.js.
 6. Khi trạng thái là **Ready**, nhấn **Visit**. Link công khai sẽ có dạng:
@@ -110,7 +110,37 @@ https://atvncg-2026-TEN_TAI_KHOAN.vercel.app
 
 Đây mới là link website để gửi cho mọi người. Kiểm tra `/fan-guide` và đăng nhập `/admin` bằng `ADMIN_PASSWORD` đã đặt trên Vercel.
 
-## 5. Cập nhật website ở những lần sau
+## 5. Cấu hình Cloudinary để tải tệp
+
+1. Đăng nhập `https://console.cloudinary.com` và tạo Product Environment nếu tài khoản chưa có.
+2. Mở **Settings** → **API Keys**.
+3. Sao chép `Cloud name`, `API Key` và `API Secret`. Không gửi hoặc commit `API Secret` lên GitHub.
+4. Trong Vercel, mở project → **Settings** → **Environments** → **Production**. Nếu giao diện hiện mục **Environment Variables** riêng thì mở mục đó.
+5. Thêm từng biến sau:
+
+| Tên biến | Giá trị |
+| --- | --- |
+| `CLOUDINARY_CLOUD_NAME` | Cloud name |
+| `CLOUDINARY_API_KEY` | API Key |
+| `CLOUDINARY_API_SECRET` | API Secret |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cùng Cloud name ở dòng đầu |
+
+Chọn áp dụng cho **Production** và **Preview**, rồi lưu. Dự án đang dùng signed upload nên không cần tạo unsigned upload preset.
+
+6. Mở tab **Deployments**, chọn deployment mới nhất → menu ba chấm → **Redeploy**. Biến mới chỉ có hiệu lực ở deployment được tạo sau khi lưu.
+7. Mở website, thử gửi một ảnh tại Fan Frame. Với Fan Made và Fan Calls, form sẽ tải hai tệp: media hiển thị công khai và minh chứng chỉ admin nhìn thấy.
+
+## 6. Đổi tên website Vercel thành ATVNCG 2026 Fandom
+
+Không cần sửa code hay đổi tên repository GitHub:
+
+1. Vào Vercel → chọn project `atvncg-2026` → **Settings** → **General**.
+2. Trong **Project Name**, đổi thành `atvncg2026fandom` và nhấn **Save**.
+3. Mở **Deployments** và **Redeploy** deployment mới nhất, hoặc push một commit mới.
+4. Sau khi trạng thái **Ready**, mở **Settings** → **Domains** để xem URL production. Nếu tên còn trống, URL mong muốn là `https://atvncg2026fandom.vercel.app`. Nếu đã có người dùng tên này, đặt `atvncg-2026-fandom`.
+5. Cập nhật bookmark và link đã chia sẻ sang URL mới. GitHub auto-deploy vẫn giữ nguyên vì Vercel liên kết bằng Project ID.
+
+## 7. Cập nhật website ở những lần sau
 
 Sau mỗi lần sửa code và kiểm tra bằng `pnpm.cmd lint` + `pnpm.cmd build`:
 
