@@ -2,6 +2,11 @@ export type SubmissionTypeValue = "LETTER" | "MEMORY" | "FANMADE" | "CALL";
 export type SubmissionStatusValue = "PENDING" | "APPROVED" | "REJECTED";
 export type MediaTypeValue = "IMAGE" | "VIDEO";
 
+export type SubmissionMedia = {
+  url: string;
+  type: MediaTypeValue;
+};
+
 export type PublicSubmission = {
   id: string;
   type: SubmissionTypeValue;
@@ -11,6 +16,7 @@ export type PublicSubmission = {
   content: string;
   mediaUrl: string | null;
   mediaType: MediaTypeValue | null;
+  mediaItems?: SubmissionMedia[];
   proofUrl?: string | null;
   proofFileName?: string | null;
   status?: SubmissionStatusValue;

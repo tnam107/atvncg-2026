@@ -1,19 +1,14 @@
-/* eslint-disable @next/next/no-img-element -- user media has runtime URLs and unknown dimensions */
-import { Play, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { FireButton } from "@/components/fire-button";
+import { SubmissionMediaGallery } from "@/components/submission-media-gallery";
 import type { PublicSubmission } from "@/lib/types";
-import { formatDate, safeMediaUrl } from "@/lib/utils";
+import { formatDate, normalizeSubmissionMedia } from "@/lib/utils";
 
 export function MediaCard({ item }: { item: PublicSubmission }) {
-  const mediaUrl = safeMediaUrl(item.mediaUrl);
+  const mediaItems = normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType);
   return (
-    <article className="group overflow-hidden rounded-[24px] border border-orange-100 bg-white shadow-[0_12px_40px_rgba(120,53,15,.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(120,53,15,.13)]">
-      {mediaUrl && (
-        <div className="relative overflow-hidden bg-orange-100">
-          {item.mediaType === "VIDEO" ? <video src={mediaUrl} className="max-h-[560px] w-full object-cover" controls preload="metadata" /> : <img src={mediaUrl} alt={item.title || item.content} className="max-h-[620px] w-full object-cover transition duration-700 group-hover:scale-[1.03]" loading="lazy" />}
-          {item.mediaType === "VIDEO" && <span className="pointer-events-none absolute left-3 top-3 grid size-9 place-items-center rounded-full bg-stone-950/70 text-white backdrop-blur"><Play size={15} fill="currentColor" /></span>}
-        </div>
-      )}
+    <article className="group reveal-on-scroll overflow-hidden rounded-[24px] border border-orange-100 bg-white shadow-[0_12px_40px_rgba(120,53,15,.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(120,53,15,.13)]">
+      <SubmissionMediaGallery items={mediaItems} alt={item.title || item.content} />
       <div className="p-5">
         {item.title && <h2 className="text-lg font-black tracking-tight text-stone-950">{item.title}</h2>}
         <p className="mt-2 text-sm leading-6 text-stone-600">{item.content}</p>

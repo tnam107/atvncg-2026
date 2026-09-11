@@ -16,6 +16,11 @@ const cloudinaryUrlSchema = z
     }
   }, "Tệp phải là đường dẫn HTTPS từ Cloudinary");
 
+export const submissionMediaSchema = z.object({
+  url: cloudinaryUrlSchema,
+  type: mediaTypeSchema,
+});
+
 export const submissionSchema = z
   .object({
     type: submissionTypeSchema,
@@ -29,15 +34,17 @@ export const submissionSchema = z
       .max(3000, "Nội dung tối đa 3.000 ký tự"),
     mediaUrl: cloudinaryUrlSchema.optional().nullable(),
     mediaType: mediaTypeSchema.optional().nullable(),
+    mediaItems: z.array(submissionMediaSchema).max(10, "Mỗi bài được đăng tối đa 10 ảnh hoặc video").optional().default([]),
     proofUrl: cloudinaryUrlSchema.optional().nullable(),
     proofFileName: z.string().trim().max(255).optional().nullable(),
   })
   .superRefine((data, ctx) => {
-    if (["MEMORY", "FANMADE", "CALL"].includes(data.type) && !data.mediaUrl) {
+    const mediaCount = data.mediaItems.length || (data.mediaUrl && data.mediaType ? 1 : 0);
+    if (["MEMORY", "FANMADE", "CALL"].includes(data.type) && mediaCount === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["mediaUrl"],
-        message: "Hãy chọn một ảnh hoặc video đại diện",
+        path: ["mediaItems"],
+        message: "Hãy chọn ít nhất một ảnh hoặc video",
       });
     }
     if (["FANMADE", "CALL"].includes(data.type) && !data.proofUrl) {

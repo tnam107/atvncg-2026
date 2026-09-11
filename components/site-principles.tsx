@@ -43,32 +43,34 @@ const notes = [
 
 export function SitePrinciples() {
   return (
-    <section className="container-shell pb-20 pt-4 md:pb-24">
-      <div className="overflow-hidden rounded-[36px] bg-stone-950 text-white">
-        <div className="border-b border-white/10 px-7 py-10 md:px-12 md:py-12">
-          <span className="eyebrow !text-orange-400"><ShieldCheck size={13} /> Quy tắc cộng đồng</span>
-          <h2 className="mt-4 text-3xl font-black tracking-[-.04em] md:text-5xl">Nguyên tắc chung</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-300">Website là không gian dành cho fandom nên mọi nội dung được đăng tải cần đảm bảo:</p>
+    <section className="container-shell reveal-on-scroll pb-20 pt-4 md:pb-24">
+      <div className="relative overflow-hidden rounded-[36px] border border-orange-200 bg-gradient-to-br from-[#fff0d7] via-[#fff8ec] to-[#ffd8bc] text-stone-900 shadow-[0_24px_80px_rgba(154,52,18,.12)]">
+        <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border-[45px] border-orange-300/20" />
+        <div className="pointer-events-none absolute bottom-24 left-10 size-3 rounded-full bg-orange-400/50 animate-ember" />
+        <div className="relative border-b border-orange-200/70 px-7 py-10 md:px-12 md:py-12">
+          <span className="eyebrow"><ShieldCheck size={13} /> Quy tắc cộng đồng</span>
+          <h2 className="mt-4 text-3xl font-black tracking-[-.04em] text-[#431b0c] md:text-5xl">Nguyên tắc chung</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-700">Website là không gian dành cho fandom nên mọi nội dung được đăng tải cần đảm bảo:</p>
           <ul className="mt-7 grid gap-3 md:grid-cols-2">
             {generalRules.map((rule) => (
-              <li key={rule} className="flex gap-3 rounded-2xl bg-white/[.06] px-4 py-3 text-sm leading-6 text-stone-200">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-orange-400" />
+              <li key={rule} className="flex gap-3 rounded-2xl border border-orange-100 bg-white/75 px-4 py-3 text-sm leading-6 text-stone-700 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-orange-300 hover:bg-white">
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-orange-500" />
                 <span>{rule}</span>
               </li>
             ))}
           </ul>
         </div>
-        <div className="px-7 py-10 md:px-12 md:py-12">
-          <h2 className="text-2xl font-black tracking-tight md:text-3xl">Các lưu ý khác</h2>
+        <div className="relative px-7 py-10 md:px-12 md:py-12">
+          <h2 className="text-2xl font-black tracking-tight text-[#431b0c] md:text-3xl">Các lưu ý khác</h2>
           <div className="mt-7 grid gap-5">
             {notes.map(({ icon: Icon, title, paragraphs }, index) => (
-              <article key={title} className="rounded-[24px] border border-white/10 bg-white/[.04] p-5 md:p-6">
+              <article key={title} className="rounded-[24px] border border-orange-200/70 bg-[#fffaf2]/85 p-5 shadow-[0_10px_35px_rgba(154,52,18,.06)] transition duration-300 hover:border-orange-300 hover:shadow-[0_16px_45px_rgba(154,52,18,.1)] md:p-6">
                 <div className="flex items-start gap-4">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-orange-500 text-white"><Icon size={20} /></span>
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-md shadow-orange-200"><Icon size={20} /></span>
                   <div>
-                    <h3 className="font-black leading-6"><span className="mr-2 text-orange-400">{index + 1}.</span>{title}</h3>
-                    <ul className="mt-3 space-y-2 text-sm leading-6 text-stone-400">
-                      {paragraphs.map((paragraph) => <li key={paragraph} className="flex gap-3"><span className="mt-2 size-1 shrink-0 rounded-full bg-stone-500" /><span>{paragraph}</span></li>)}
+                    <h3 className="font-black leading-6 text-stone-900"><span className="mr-2 text-orange-600">{index + 1}.</span>{title}</h3>
+                    <ul className="mt-3 space-y-2 text-sm leading-6 text-stone-600">
+                      {paragraphs.map((paragraph) => <li key={paragraph} className="flex gap-3"><span className="mt-2 size-1 shrink-0 rounded-full bg-orange-400" /><span>{paragraph}</span></li>)}
                     </ul>
                   </div>
                 </div>

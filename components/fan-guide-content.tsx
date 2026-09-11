@@ -89,11 +89,11 @@ export function FanGuideContent({ content }: { content: GuideContent }) {
         </div>
       </section>
 
-      <section className="bg-stone-950 py-20 text-white">
+      <section className="reveal-on-scroll border-y border-orange-200 bg-gradient-to-br from-[#f9dfc6] via-[#fff0dc] to-[#ffd2b1] py-20 text-stone-900">
         <div className="container-shell">
-          <span className="eyebrow !text-orange-400"><Radio size={13} /> Series phát sóng</span>
-          <h2 className="mt-4 text-3xl font-black tracking-tight md:text-4xl">Xem lại từng chặng đường</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-400">Chọn một tập để mở video trực tiếp trên YouTube. Website chỉ hiển thị ảnh đại diện và không nhúng trình phát.</p>
+          <span className="eyebrow"><Radio size={13} /> Series phát sóng</span>
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-[#4b1f0e] md:text-4xl">Xem lại từng chặng đường</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-600">Chọn một tập để mở video trực tiếp trên YouTube. Website chỉ hiển thị ảnh đại diện và không nhúng trình phát.</p>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {content.episodes.map((episode) => (
               <a
@@ -101,25 +101,25 @@ export function FanGuideContent({ content }: { content: GuideContent }) {
                 href={episode.youtubeUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="group overflow-hidden rounded-[24px] border border-white/10 bg-white/[.06] transition hover:-translate-y-1 hover:border-orange-400/60"
+                className="group overflow-hidden rounded-[24px] border border-orange-200 bg-[#fffaf2] shadow-[0_12px_35px_rgba(120,53,15,.09)] transition duration-300 hover:-translate-y-1 hover:border-orange-400 hover:shadow-[0_18px_45px_rgba(120,53,15,.14)]"
               >
-                <div className="relative aspect-video overflow-hidden bg-stone-900">
+                <div className="relative aspect-video overflow-hidden bg-orange-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={episode.imageUrl} alt={`Ảnh đại diện tập ${episode.episodeNumber}`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0 grid place-items-center bg-stone-950/20 transition group-hover:bg-stone-950/35">
+                  <div className="absolute inset-0 grid place-items-center bg-orange-950/15 transition group-hover:bg-orange-950/25">
                     <span className="grid size-14 place-items-center rounded-full bg-red-600 text-white shadow-xl"><Play size={22} fill="currentColor" /></span>
                   </div>
                 </div>
                 <div className="p-5">
-                  <span className="text-xs font-black tracking-[.16em] text-orange-400">TẬP {String(episode.episodeNumber).padStart(2, "0")}</span>
-                  <h3 className="mt-2 text-lg font-extrabold">{episode.title}</h3>
-                  {episode.description ? <p className="mt-2 text-sm leading-6 text-stone-400">{episode.description}</p> : null}
-                  <span className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-orange-300">Mở trên YouTube <ExternalLink size={12} /></span>
+                  <span className="text-xs font-black tracking-[.16em] text-orange-700">TẬP {String(episode.episodeNumber).padStart(2, "0")}</span>
+                  <h3 className="mt-2 text-lg font-extrabold text-stone-900">{episode.title}</h3>
+                  {episode.description ? <p className="mt-2 text-sm leading-6 text-stone-600">{episode.description}</p> : null}
+                  <span className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-orange-700">Mở trên YouTube <ExternalLink size={12} /></span>
                 </div>
               </a>
             ))}
           </div>
-          <p className="mt-5 flex items-center gap-2 text-xs text-stone-500"><ExternalLink size={12} /> Liên kết đến video trên kênh YEAH1 SHOW; nội dung được phát theo chính sách của YouTube.</p>
+          <p className="mt-5 flex items-center gap-2 text-xs text-stone-600"><ExternalLink size={12} /> Liên kết đến video trên kênh YEAH1 SHOW; nội dung được phát theo chính sách của YouTube.</p>
         </div>
       </section>
 

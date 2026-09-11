@@ -15,6 +15,7 @@ import type {
   SubmissionStatusValue,
   SubmissionTypeValue,
 } from "@/lib/types";
+import { normalizeSubmissionMedia } from "@/lib/utils";
 
 export type LocalGuideMutation =
   | { action: "UPSERT_ARTIST"; slug: string; role?: string | null; content: string; imageUrl?: string | null }
@@ -35,6 +36,7 @@ type SubmissionRow = {
   content: string;
   media_url: string | null;
   media_type: "IMAGE" | "VIDEO" | null;
+  media_items: string | null;
   proof_url: string | null;
   proof_file_name: string | null;
   status: SubmissionStatusValue;
@@ -108,6 +110,7 @@ function getLocalDatabase() {
       content TEXT NOT NULL,
       media_url TEXT,
       media_type TEXT,
+      media_items TEXT,
       proof_url TEXT,
       proof_file_name TEXT,
       status TEXT NOT NULL DEFAULT 'PENDING',
@@ -156,6 +159,9 @@ function getLocalDatabase() {
   if (!submissionColumns.some((column) => column.name === "proof_file_name")) {
     created.exec("ALTER TABLE submission ADD COLUMN proof_file_name TEXT");
   }
+  if (!submissionColumns.some((column) => column.name === "media_items")) {
+    created.exec("ALTER TABLE submission ADD COLUMN media_items TEXT");
+  }
   seedLocalDatabase(created);
   globalLocalDatabase.atvncgLocalDatabase = created;
   return created;
@@ -170,6 +176,12 @@ const database = new Proxy({} as DatabaseSync, {
 });
 
 function mapSubmission(row: SubmissionRow, includePrivate = true): PublicSubmission {
+  let storedMedia: unknown = null;
+  try {
+    storedMedia = row.media_items ? JSON.parse(row.media_items) : null;
+  } catch {
+    storedMedia = null;
+  }
   return {
     id: row.id,
     type: row.type,
@@ -179,6 +191,7 @@ function mapSubmission(row: SubmissionRow, includePrivate = true): PublicSubmiss
     content: row.content,
     mediaUrl: row.media_url,
     mediaType: row.media_type,
+    mediaItems: normalizeSubmissionMedia(storedMedia, row.media_url, row.media_type),
     ...(includePrivate ? {
       proofUrl: row.proof_url,
       proofFileName: row.proof_file_name,
@@ -207,10 +220,16 @@ export function localListAdminSubmissions() {
 export function localCreateSubmission(input: SubmissionInput) {
   const id = randomUUID();
   const now = new Date().toISOString();
+  const mediaItems = input.mediaItems.length > 0
+    ? input.mediaItems
+    : input.mediaUrl && input.mediaType
+      ? [{ url: input.mediaUrl, type: input.mediaType }]
+      : [];
+  const firstMedia = mediaItems[0];
   database.prepare(`
-    INSERT INTO submission (id, type, author_name, target_id, title, content, media_url, media_type, proof_url, proof_file_name, status, admin_note, likes_count, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NULL, 0, ?, ?)
-  `).run(id, input.type, input.authorName, input.targetId || null, input.title || null, input.content, input.mediaUrl || null, input.mediaType || null, input.proofUrl || null, input.proofFileName || null, now, now);
+    INSERT INTO submission (id, type, author_name, target_id, title, content, media_url, media_type, media_items, proof_url, proof_file_name, status, admin_note, likes_count, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NULL, 0, ?, ?)
+  `).run(id, input.type, input.authorName, input.targetId || null, input.title || null, input.content, firstMedia?.url || null, firstMedia?.type || null, JSON.stringify(mediaItems), input.proofUrl || null, input.proofFileName || null, now, now);
   return mapSubmission(database.prepare("SELECT * FROM submission WHERE id = ?").get(id) as unknown as SubmissionRow);
 }
 

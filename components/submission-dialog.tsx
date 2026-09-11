@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, FileCheck2, FileImage, Flame, LoaderCircle, UploadCloud } from "lucide-react";
+import { Check, FileCheck2, FileImage, Flame, LoaderCircle, UploadCloud, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { artists } from "@/lib/demo-data";
 import { uploadMedia, uploadProof } from "@/lib/cloudinary-upload";
-import { mediaTypeSchema, submissionTypeSchema, type SubmissionInput } from "@/lib/validation";
+import { mediaTypeSchema, submissionTypeSchema } from "@/lib/validation";
 import type { SubmissionTypeValue } from "@/lib/types";
 
 const copy: Record<SubmissionTypeValue, { title: string; description: string; contentLabel: string; contentPlaceholder: string }> = {
@@ -46,6 +46,7 @@ const draftSchema = z.object({
   content: z.string().trim().max(3000, "Nội dung tối đa 3.000 ký tự"),
   mediaUrl: z.string().url().optional().nullable(),
   mediaType: mediaTypeSchema.optional().nullable(),
+  mediaItems: z.array(z.object({ url: z.string().url(), type: mediaTypeSchema })).max(10).optional(),
   proofUrl: z.string().url().optional().nullable(),
   proofFileName: z.string().max(255).optional().nullable(),
 }).superRefine((data, ctx) => {
@@ -54,10 +55,12 @@ const draftSchema = z.object({
   }
 });
 
+type SubmissionDraft = z.infer<typeof draftSchema>;
+
 export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVariant = "primary", className }: { type: SubmissionTypeValue; buttonLabel?: string; buttonVariant?: ButtonProps["variant"]; className?: string }) {
   const [open, setOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{ file: File; preview: string }[]>([]);
+  const [uploadedCount, setUploadedCount] = useState(0);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -67,20 +70,41 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
   const needsMedia = type !== "LETTER";
   const needsProof = type === "FANMADE" || type === "CALL";
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SubmissionInput>({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SubmissionDraft>({
     resolver: zodResolver(draftSchema),
-    defaultValues: { type, authorName: "Tạm", targetId: type === "MEMORY" ? null : "Tất cả Anh Tài", title: "", content: "", mediaUrl: null, mediaType: null, proofUrl: null, proofFileName: null },
+    defaultValues: { type, authorName: "Tạm", targetId: type === "MEMORY" ? null : "Tất cả Anh Tài", title: "", content: "", mediaUrl: null, mediaType: null, mediaItems: [], proofUrl: null, proofFileName: null },
   });
 
   useEffect(() => () => {
-    if (preview) URL.revokeObjectURL(preview);
     if (proofPreview) URL.revokeObjectURL(proofPreview);
-  }, [preview, proofPreview]);
+  }, [proofPreview]);
 
-  function chooseFile(nextFile?: File) {
-    if (preview) URL.revokeObjectURL(preview);
-    setFile(nextFile ?? null);
-    setPreview(nextFile ? URL.createObjectURL(nextFile) : null);
+  function chooseFiles(fileList: FileList | null) {
+    const incoming = fileList ? Array.from(fileList) : [];
+    if (incoming.length === 0) return;
+    const availableSlots = 10 - selectedMedia.length;
+    if (availableSlots <= 0) {
+      toast.error("Mỗi bài được đăng tối đa 10 ảnh hoặc video.");
+      return;
+    }
+    if (incoming.length > availableSlots) {
+      toast.warning(`Chỉ thêm ${availableSlots} tệp để không vượt quá giới hạn 10 tệp.`);
+    }
+    const additions = incoming.slice(0, availableSlots).map((file) => {
+      const preview = URL.createObjectURL(file);
+      return { file, preview };
+    });
+    setSelectedMedia((current) => [...current, ...additions]);
+  }
+
+  function removeMedia(preview: string) {
+    URL.revokeObjectURL(preview);
+    setSelectedMedia((current) => current.filter((item) => item.preview !== preview));
+  }
+
+  function clearMedia() {
+    selectedMedia.forEach((item) => URL.revokeObjectURL(item.preview));
+    setSelectedMedia([]);
   }
 
   function chooseProof(nextFile?: File) {
@@ -89,14 +113,19 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
     setProofPreview(nextFile ? URL.createObjectURL(nextFile) : null);
   }
 
-  async function submit(values: SubmissionInput) {
+  async function submit(values: SubmissionDraft) {
     if (!identity) return;
-    if (needsMedia && !file) { toast.error("Hãy chọn một ảnh hoặc video đại diện."); return; }
+    if (needsMedia && selectedMedia.length === 0) { toast.error("Hãy chọn ít nhất một ảnh hoặc video."); return; }
     if (needsProof && !proofFile) { toast.error(type === "CALL" ? "Hãy tải minh chứng cấp duyệt project." : "Hãy tải minh chứng sản phẩm chính chủ."); return; }
     if (type === "FANMADE" && !confirmed) { toast.error("Hãy xác nhận tác phẩm không sử dụng AI."); return; }
 
     try {
-      const uploaded = file ? await uploadMedia(file) : null;
+      setUploadedCount(0);
+      const uploadedMedia = await Promise.all(selectedMedia.map(async ({ file }) => {
+        const uploaded = await uploadMedia(file);
+        setUploadedCount((count) => count + 1);
+        return uploaded;
+      }));
       const uploadedProof = proofFile ? await uploadProof(proofFile) : null;
       const content = type === "CALL"
         ? [
@@ -117,8 +146,9 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
           type,
           authorName: identity.mode === "anonymous" ? "Ẩn danh" : identity.nickname,
           content,
-          mediaUrl: uploaded?.secureUrl ?? null,
-          mediaType: uploaded?.mediaType ?? null,
+          mediaUrl: uploadedMedia[0]?.secureUrl ?? null,
+          mediaType: uploadedMedia[0]?.mediaType ?? null,
+          mediaItems: uploadedMedia.map((item) => ({ url: item.secureUrl, type: item.mediaType })),
           proofUrl: uploadedProof?.secureUrl ?? null,
           proofFileName: uploadedProof?.fileName ?? null,
         }),
@@ -127,13 +157,15 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
       if (!response.ok) throw new Error(result.error || "Không thể gửi bài.");
       toast.success("Gửi thành công! Nội dung đã được lưu và đang chờ Admin duyệt…");
       reset();
-      chooseFile();
+      clearMedia();
       chooseProof();
       setConfirmed(false);
       setCallDetails(emptyCallDetails);
       setOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Đã có lỗi xảy ra.");
+    } finally {
+      setUploadedCount(0);
     }
   }
 
@@ -187,17 +219,33 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
             )}
 
             {needsMedia && (
-              <label className="group cursor-pointer rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/60 p-4 transition hover:border-orange-400 hover:bg-orange-50">
-                <input type="file" accept="image/*,video/*" className="sr-only" onChange={(event) => chooseFile(event.target.files?.[0])} />
-                <span className="flex items-center gap-3">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-orange-600 shadow-sm">{preview ? <Check size={20} /> : <UploadCloud size={20} />}</span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-extrabold text-stone-800">{file?.name || (type === "CALL" ? "Ảnh đại diện/poster của project" : type === "FANMADE" ? "Ảnh/video sản phẩm" : "Chọn ảnh hoặc video")}</span>
-                    <span className="mt-0.5 block text-xs text-stone-500">Ảnh tối đa 10 MB · Video tối đa 100 MB</span>
+              <div>
+                <label className="group block cursor-pointer rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/60 p-4 transition hover:border-orange-400 hover:bg-orange-50">
+                  <input type="file" accept="image/*,video/*" multiple className="sr-only" onChange={(event) => { chooseFiles(event.target.files); event.currentTarget.value = ""; }} />
+                  <span className="flex items-center gap-3">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-orange-600 shadow-sm">{selectedMedia.length > 0 ? <Check size={20} /> : <UploadCloud size={20} />}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-extrabold text-stone-800">{selectedMedia.length > 0 ? `Đã chọn ${selectedMedia.length}/10 tệp` : type === "CALL" ? "Chọn ảnh/video của project" : type === "FANMADE" ? "Chọn ảnh/video sản phẩm" : "Chọn ảnh hoặc video"}</span>
+                      <span className="mt-0.5 block text-xs text-stone-500">Tối đa 10 tệp · Ảnh 10 MB/tệp · Video 100 MB/tệp</span>
+                    </span>
                   </span>
-                </span>
-                {preview && file?.type.startsWith("image/") && <img src={preview} alt="Xem trước tệp đã chọn" className="mt-3 max-h-44 w-full rounded-xl object-cover" />}
-              </label>
+                </label>
+                {selectedMedia.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {selectedMedia.map(({ file, preview }, index) => (
+                      <div key={preview} className="relative overflow-hidden rounded-xl border border-orange-100 bg-orange-50">
+                        {file.type.startsWith("image/") ? (
+                          <img src={preview} alt={`Xem trước tệp ${index + 1}`} className="aspect-square w-full object-cover" />
+                        ) : (
+                          <div className="grid aspect-square place-items-center p-3 text-center text-xs font-bold text-stone-600"><FileImage className="mb-2 text-orange-500" />{file.name}</div>
+                        )}
+                        <span className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-black text-orange-800 shadow-sm">{index + 1}</span>
+                        <button type="button" aria-label={`Bỏ tệp ${index + 1}`} onClick={() => removeMedia(preview)} className="absolute right-2 top-2 grid size-7 cursor-pointer place-items-center rounded-full bg-white/90 text-stone-700 shadow-sm transition hover:bg-red-50 hover:text-red-600"><X size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {needsProof && (
@@ -223,7 +271,7 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
 
             <Button type="submit" size="lg" className="mt-2 w-full" disabled={isSubmitting}>
               {isSubmitting ? <LoaderCircle size={18} className="animate-spin" /> : <FileImage size={18} />}
-              {isSubmitting ? (file || proofFile ? "Đang tải lên…" : "Đang gửi…") : "Gửi chờ duyệt"}
+              {isSubmitting ? (selectedMedia.length > 0 ? `Đang tải ${uploadedCount}/${selectedMedia.length} tệp…` : proofFile ? "Đang tải minh chứng…" : "Đang gửi…") : "Gửi chờ duyệt"}
             </Button>
             <p className="text-center text-[11px] leading-5 text-stone-400">Bằng việc gửi bài, bạn đồng ý tuân thủ nguyên tắc cộng đồng và cho phép hiển thị nội dung sau khi duyệt.</p>
           </form>

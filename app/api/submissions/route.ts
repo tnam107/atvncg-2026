@@ -1,8 +1,10 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { localCreateSubmission, localListPublicSubmissions } from "@/lib/local-database";
 import { databaseConfigured, isProduction, prisma } from "@/lib/prisma";
 import { allowRequest } from "@/lib/rate-limit";
 import { submissionSchema } from "@/lib/validation";
+import { normalizeSubmissionMedia } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -34,11 +36,17 @@ export async function GET(request: NextRequest) {
         content: true,
         mediaUrl: true,
         mediaType: true,
+        mediaItems: true,
         likesCount: true,
         createdAt: true,
       },
     });
-    return NextResponse.json({ items });
+    return NextResponse.json({
+      items: items.map((item) => ({
+        ...item,
+        mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType),
+      })),
+    });
   } catch (error) {
     console.error("GET /api/submissions", error);
     return NextResponse.json({ error: "Không thể tải nội dung lúc này." }, { status: 500 });
@@ -65,8 +73,24 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const item = await prisma.submission.create({ data: parsed.data });
-    return NextResponse.json({ item }, { status: 201 });
+    const { mediaItems: submittedMedia, ...submission } = parsed.data;
+    const mediaItems = submittedMedia.length > 0
+      ? submittedMedia
+      : submission.mediaUrl && submission.mediaType
+        ? [{ url: submission.mediaUrl, type: submission.mediaType }]
+        : [];
+    const firstMedia = mediaItems[0];
+    const item = await prisma.submission.create({
+      data: {
+        ...submission,
+        mediaUrl: firstMedia?.url ?? null,
+        mediaType: firstMedia?.type ?? null,
+        mediaItems: mediaItems as Prisma.InputJsonValue,
+      },
+    });
+    return NextResponse.json({
+      item: { ...item, mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType) },
+    }, { status: 201 });
   } catch (error) {
     console.error("POST /api/submissions", error);
     return NextResponse.json({ error: "Chưa thể lưu bài viết. Vui lòng thử lại." }, { status: 500 });

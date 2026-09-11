@@ -34,6 +34,7 @@ model Submission {
   content       String           @db.Text
   mediaUrl      String?
   mediaType     MediaType?
+  mediaItems    Json?
   proofUrl      String?
   proofFileName String?
   status        SubmissionStatus @default(PENDING)

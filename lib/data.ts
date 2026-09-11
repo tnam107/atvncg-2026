@@ -1,6 +1,7 @@
 import { localListPublicSubmissions } from "@/lib/local-database";
 import { databaseConfigured, prisma } from "@/lib/prisma";
 import type { PublicSubmission, SubmissionTypeValue } from "@/lib/types";
+import { normalizeSubmissionMedia } from "@/lib/utils";
 
 export async function getPublicSubmissions(type: SubmissionTypeValue): Promise<PublicSubmission[]> {
   if (!databaseConfigured) return localListPublicSubmissions(type);
@@ -18,11 +19,16 @@ export async function getPublicSubmissions(type: SubmissionTypeValue): Promise<P
         content: true,
         mediaUrl: true,
         mediaType: true,
+        mediaItems: true,
         likesCount: true,
         createdAt: true,
       },
     });
-    return items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() }));
+    return items.map((item) => ({
+      ...item,
+      mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType),
+      createdAt: item.createdAt.toISOString(),
+    }));
   } catch (error) {
     console.error(`Failed to load ${type} submissions`, error);
     throw error;

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ADMIN_COOKIE, verifyAdminToken } from "@/lib/admin-auth";
 import { localListAdminSubmissions } from "@/lib/local-database";
 import { databaseConfigured, isProduction, prisma } from "@/lib/prisma";
+import { normalizeSubmissionMedia } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,12 @@ export async function GET() {
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       take: 200,
     });
-    return NextResponse.json({ items });
+    return NextResponse.json({
+      items: items.map((item) => ({
+        ...item,
+        mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType),
+      })),
+    });
   } catch (error) {
     console.error("GET /api/admin/submissions", error);
     return NextResponse.json({ error: "Không thể tải danh sách kiểm duyệt." }, { status: 500 });

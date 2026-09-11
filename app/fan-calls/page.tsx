@@ -25,7 +25,7 @@ export default async function FanCallsPage() {
       />
       <section className="container-shell py-16 md:py-20">
         <div className="mb-10 grid gap-4 md:grid-cols-2">
-          <div className="flex items-start gap-4 rounded-[24px] bg-stone-950 p-6 text-white"><CircleDollarSign className="mt-0.5 shrink-0 text-orange-400" /><div><h2 className="font-black">Không nhận donate tại đây</h2><p className="mt-2 text-sm leading-6 text-stone-400">Website chỉ kết nối thông tin, không trực tiếp nhận donate hoặc đứng ra bảo chứng giao dịch.</p></div></div>
+          <div className="flex items-start gap-4 rounded-[24px] border border-orange-200 bg-gradient-to-r from-[#fff0d7] to-[#ffe1c7] p-6 text-stone-900 shadow-sm"><CircleDollarSign className="mt-0.5 shrink-0 text-orange-600" /><div><h2 className="font-black text-[#5c240e]">Không nhận donate tại đây</h2><p className="mt-2 text-sm leading-6 text-stone-600">Website chỉ kết nối thông tin, không trực tiếp nhận donate hoặc đứng ra bảo chứng giao dịch.</p></div></div>
           <div className="flex items-start gap-4 rounded-[24px] border border-orange-200 bg-white p-6"><BadgeCheck className="mt-0.5 shrink-0 text-orange-600" /><div><h2 className="font-black">Dự án có kiểm duyệt</h2><p className="mt-2 text-sm leading-6 text-stone-500">Mỗi lời kêu gọi cần tải minh chứng cấp duyệt và được quản trị viên xem trước khi xuất hiện.</p></div></div>
         </div>
         <div className="masonry">{items.map((item) => <MediaCard key={item.id} item={item} />)}</div>

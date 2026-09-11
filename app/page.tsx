@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenText, Camera, Flame, FolderHeart, Mail, Megaphone, Sparkles } from "lucide-react";
-import { Countdown } from "@/components/countdown";
+import { ArrowRight, BookOpenText, Camera, FolderHeart, Mail, Megaphone, Sparkles } from "lucide-react";
+import { HomeGallery } from "@/components/home-gallery";
 import { SitePrinciples } from "@/components/site-principles";
 
 const spaces = [
@@ -28,25 +28,14 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[470px]">
+          <div className="reveal-rise relative mx-auto w-full max-w-[500px]">
             <div className="absolute -inset-10 rounded-full bg-orange-300/25 blur-3xl" />
-            <div className="animate-float relative rotate-2 overflow-hidden rounded-[36px] bg-stone-950 p-7 text-white shadow-[0_35px_100px_rgba(120,53,15,.25)] md:p-9">
-              <div className="absolute -right-12 -top-12 size-40 rounded-full bg-orange-500/30 blur-2xl" />
-              <div className="flex items-center justify-between">
-                <span className="rounded-full bg-orange-500 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.18em]">Tập tiếp theo</span>
-                <Flame className="text-orange-400" size={25} fill="currentColor" />
-              </div>
-              <p className="mt-14 text-sm font-semibold text-stone-400">Thứ Bảy · 20:00</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-.05em] md:text-4xl">Lửa đã sẵn sàng.</h2>
-              <p className="mt-3 text-sm leading-6 text-stone-300">Cùng đếm từng khoảnh khắc đến giờ gặp lại các Anh Tài.</p>
-              <div className="mt-8"><Countdown /></div>
-              <div className="mt-7 flex items-center gap-2 text-xs font-semibold text-stone-400"><span className="size-2 animate-pulse rounded-full bg-orange-400" /> Đồng hồ theo múi giờ Việt Nam</div>
-            </div>
+            <div className="relative rotate-1 transition duration-500 hover:rotate-0"><HomeGallery /></div>
           </div>
         </div>
       </section>
 
-      <section id="kham-pha" className="container-shell scroll-mt-24 py-24">
+      <section id="kham-pha" className="container-shell reveal-on-scroll scroll-mt-24 py-24">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div><span className="eyebrow">Năm góc nhỏ</span><h2 className="section-title mt-4">Chọn nơi bạn muốn ghé.</h2></div>
           <p className="max-w-sm text-sm leading-6 text-stone-500">Không cần đăng nhập. Chỉ cần một biệt danh - hoặc cứ là Ẩn danh nếu bạn muốn.</p>
