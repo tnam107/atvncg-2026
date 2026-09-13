@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, FileCheck2, FileImage, Flame, LoaderCircle, UploadCloud, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useIdentity } from "@/components/identity-provider";
@@ -38,10 +38,13 @@ const emptyCallDetails = {
   donation: "",
 };
 
+const OTHER_TARGET = "__OTHER__";
+
 const draftSchema = z.object({
   type: submissionTypeSchema,
   authorName: z.string().min(1),
   targetId: z.string().max(80).optional().nullable(),
+  customTarget: z.string().trim().max(80, "Tên người nhận tối đa 80 ký tự").optional(),
   title: z.string().trim().max(120, "Tiêu đề tối đa 120 ký tự").optional().nullable(),
   content: z.string().trim().max(3000, "Nội dung tối đa 3.000 ký tự"),
   mediaUrl: z.string().url().optional().nullable(),
@@ -52,6 +55,9 @@ const draftSchema = z.object({
 }).superRefine((data, ctx) => {
   if (data.type !== "CALL" && data.content.length < 3) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["content"], message: "Nội dung cần ít nhất 3 ký tự" });
+  }
+  if (data.targetId === OTHER_TARGET && (!data.customTarget || data.customTarget.length < 2)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["customTarget"], message: "Hãy nhập tên Anh Tài, nhóm hoặc Nhà muốn gửi đến" });
   }
 });
 
@@ -70,10 +76,11 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
   const needsMedia = type !== "LETTER";
   const needsProof = type === "FANMADE" || type === "CALL";
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SubmissionDraft>({
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<SubmissionDraft>({
     resolver: zodResolver(draftSchema),
-    defaultValues: { type, authorName: "Tạm", targetId: type === "MEMORY" ? null : "Tất cả Anh Tài", title: "", content: "", mediaUrl: null, mediaType: null, mediaItems: [], proofUrl: null, proofFileName: null },
+    defaultValues: { type, authorName: "Tạm", targetId: "Tất cả Anh Tài", customTarget: "", title: "", content: "", mediaUrl: null, mediaType: null, mediaItems: [], proofUrl: null, proofFileName: null },
   });
+  const selectedTarget = useWatch({ control, name: "targetId" });
 
   useEffect(() => () => {
     if (proofPreview) URL.revokeObjectURL(proofPreview);
@@ -120,6 +127,8 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
     if (type === "FANMADE" && !confirmed) { toast.error("Hãy xác nhận tác phẩm không sử dụng AI."); return; }
 
     try {
+      const { customTarget, ...submissionValues } = values;
+      const targetId = values.targetId === OTHER_TARGET ? customTarget?.trim() : values.targetId;
       setUploadedCount(0);
       const uploadedMedia = await Promise.all(selectedMedia.map(async ({ file }) => {
         const uploaded = await uploadMedia(file);
@@ -142,9 +151,10 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          ...values,
+          ...submissionValues,
           type,
           authorName: identity.mode === "anonymous" ? "Ẩn danh" : identity.nickname,
+          targetId,
           content,
           mediaUrl: uploadedMedia[0]?.secureUrl ?? null,
           mediaType: uploadedMedia[0]?.mediaType ?? null,
@@ -180,14 +190,22 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
           <DialogDescription>{details.description}</DialogDescription>
 
           <form onSubmit={handleSubmit(submit)} className="mt-6 grid gap-4">
-            {type !== "MEMORY" && (
+            <div>
               <label>
-                <span className="mb-2 block text-sm font-bold text-stone-700">{type === "CALL" ? "Bạn thuộc FC/Fansite của Anh Tài nào?" : "Gửi đến Anh Tài"}</span>
+                <span className="mb-2 block text-sm font-bold text-stone-700">{type === "CALL" ? "Bạn thuộc FC/Fansite của Anh Tài, nhóm hoặc Nhà nào?" : "Gửi đến Anh Tài, nhóm hoặc Nhà nào?"}</span>
                 <select className="h-12 w-full rounded-2xl border border-stone-200 bg-white px-4 text-sm font-semibold outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" {...register("targetId")}>
                   {artists.map((artist) => <option key={artist.id} value={artist.name}>{artist.name}</option>)}
+                  <option value={OTHER_TARGET}>Khác</option>
                 </select>
               </label>
-            )}
+              {selectedTarget === OTHER_TARGET && (
+                <label className="mt-3 block rounded-2xl border border-orange-200 bg-orange-50/60 p-3">
+                  <span className="mb-2 block text-xs font-extrabold uppercase tracking-[.12em] text-orange-700">Nhập người nhận</span>
+                  <Input {...register("customTarget")} autoFocus placeholder="Ví dụ: Nhà Mộc, nhóm Anh Tài Tình..." maxLength={80} />
+                  {errors.customTarget && <span className="mt-1.5 block text-xs font-semibold text-red-600">{errors.customTarget.message}</span>}
+                </label>
+              )}
+            </div>
 
             {(type === "FANMADE" || type === "CALL") && (
               <label>

@@ -10,6 +10,7 @@ export function MediaCard({ item }: { item: PublicSubmission }) {
     <article className="group reveal-on-scroll overflow-hidden rounded-[24px] border border-orange-100 bg-white shadow-[0_12px_40px_rgba(120,53,15,.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(120,53,15,.13)]">
       <SubmissionMediaGallery items={mediaItems} alt={item.title || item.content} />
       <div className="p-5">
+        {item.targetId && <p className="mb-2 text-[11px] font-black uppercase tracking-[.12em] text-orange-700">{item.type === "CALL" ? "FC/Fansite của " : "Dành cho "}{item.targetId}</p>}
         {item.title && <h2 className="text-lg font-black tracking-tight text-stone-950">{item.title}</h2>}
         <p className="mt-2 text-sm leading-6 text-stone-600">{item.content}</p>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-stone-100 pt-4">

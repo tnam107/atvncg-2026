@@ -9,14 +9,16 @@ import { artistCatalog } from "@/lib/guide-catalog";
 
 export function LetterWall({ items }: { items: PublicSubmission[] }) {
   const [filter, setFilter] = useState("ALL");
-  const targets = ["ALL", "Tất cả Anh Tài", ...artistCatalog.map((artist) => artist.name)];
+  const catalogTargets = ["Tất cả Anh Tài", ...artistCatalog.map((artist) => artist.name)];
+  const customTargets = Array.from(new Set(items.map((item) => item.targetId).filter((target): target is string => typeof target === "string" && !catalogTargets.includes(target))));
+  const targets = ["ALL", ...catalogTargets, ...customTargets];
   const visible = filter === "ALL" ? items : items.filter((item) => item.targetId === filter);
 
   return (
     <>
       <div className="mb-8">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-stone-400">Gửi cho ai · 34 Anh Tài</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-stone-400">Gửi cho ai · Anh Tài · nhóm · Nhà</p>
           <span className="text-xs text-stone-400">Kéo ngang để xem thêm →</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-3 [scrollbar-color:#fdba74_transparent] [scrollbar-width:thin]">

@@ -24,6 +24,15 @@ export function Footer() {
           <p className="mt-4 flex items-center gap-1 text-xs font-bold text-orange-700">Làm bằng <Heart size={13} fill="currentColor" /> bởi Gai Con</p>
         </div>
       </div>
+      <div className="border-t border-orange-200/70 bg-[#ffefd8]">
+        <div className="container-shell flex flex-col gap-3 py-5 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="rounded-full bg-white px-2.5 py-1 font-black text-orange-700 shadow-sm">© 2026</span>
+            <span>Chủ sở hữu bản quyền website: <strong className="font-black text-stone-900">Lê Thiệp Sang</strong></span>
+          </p>
+        </div>
+        <p className="container-shell pb-5 text-[10px] leading-4 text-stone-400">Tên chương trình, hình ảnh và tư liệu của bên thứ ba thuộc quyền sở hữu của các chủ thể tương ứng.</p>
+      </div>
     </footer>
   );
 }
