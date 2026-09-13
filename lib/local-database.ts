@@ -16,6 +16,7 @@ import type {
   SubmissionTypeValue,
 } from "@/lib/types";
 import { normalizeSubmissionMedia } from "@/lib/utils";
+import { hashSubmissionTrackingToken } from "@/lib/submission-token";
 
 export type LocalGuideMutation =
   | { action: "UPSERT_ARTIST"; slug: string; role?: string | null; content: string; imageUrl?: string | null }
@@ -39,6 +40,7 @@ type SubmissionRow = {
   media_items: string | null;
   proof_url: string | null;
   proof_file_name: string | null;
+  tracking_token_hash: string | null;
   status: SubmissionStatusValue;
   admin_note: string | null;
   likes_count: number;
@@ -113,6 +115,7 @@ function getLocalDatabase() {
       media_items TEXT,
       proof_url TEXT,
       proof_file_name TEXT,
+      tracking_token_hash TEXT,
       status TEXT NOT NULL DEFAULT 'PENDING',
       admin_note TEXT,
       likes_count INTEGER NOT NULL DEFAULT 0,
@@ -162,6 +165,10 @@ function getLocalDatabase() {
   if (!submissionColumns.some((column) => column.name === "media_items")) {
     created.exec("ALTER TABLE submission ADD COLUMN media_items TEXT");
   }
+  if (!submissionColumns.some((column) => column.name === "tracking_token_hash")) {
+    created.exec("ALTER TABLE submission ADD COLUMN tracking_token_hash TEXT");
+  }
+  created.exec("CREATE UNIQUE INDEX IF NOT EXISTS submission_tracking_token_hash_idx ON submission(tracking_token_hash)");
   seedLocalDatabase(created);
   globalLocalDatabase.atvncgLocalDatabase = created;
   return created;
@@ -217,9 +224,10 @@ export function localListAdminSubmissions() {
   return rows.map((row) => mapSubmission(row));
 }
 
-export function localCreateSubmission(input: SubmissionInput) {
+export function localCreateSubmission(input: SubmissionInput, trackingToken: string) {
   const id = randomUUID();
   const now = new Date().toISOString();
+  const trackingTokenHash = hashSubmissionTrackingToken(trackingToken);
   const mediaItems = input.mediaItems.length > 0
     ? input.mediaItems
     : input.mediaUrl && input.mediaType
@@ -227,10 +235,28 @@ export function localCreateSubmission(input: SubmissionInput) {
       : [];
   const firstMedia = mediaItems[0];
   database.prepare(`
-    INSERT INTO submission (id, type, author_name, target_id, title, content, media_url, media_type, media_items, proof_url, proof_file_name, status, admin_note, likes_count, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NULL, 0, ?, ?)
-  `).run(id, input.type, input.authorName, input.targetId || null, input.title || null, input.content, firstMedia?.url || null, firstMedia?.type || null, JSON.stringify(mediaItems), input.proofUrl || null, input.proofFileName || null, now, now);
+    INSERT INTO submission (id, type, author_name, target_id, title, content, media_url, media_type, media_items, proof_url, proof_file_name, tracking_token_hash, status, admin_note, likes_count, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NULL, 0, ?, ?)
+  `).run(id, input.type, input.authorName, input.targetId || null, input.title || null, input.content, firstMedia?.url || null, firstMedia?.type || null, JSON.stringify(mediaItems), input.proofUrl || null, input.proofFileName || null, trackingTokenHash, now, now);
   return mapSubmission(database.prepare("SELECT * FROM submission WHERE id = ?").get(id) as unknown as SubmissionRow);
+}
+
+export function localGetSubmissionStatus(trackingTokenHash: string) {
+  const row = database.prepare(`
+    SELECT id, type, title, status, admin_note, created_at, updated_at
+    FROM submission
+    WHERE tracking_token_hash = ?
+  `).get(trackingTokenHash) as { id: string; type: SubmissionTypeValue; title: string | null; status: SubmissionStatusValue; admin_note: string | null; created_at: string; updated_at: string } | undefined;
+  if (!row) return null;
+  return {
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    status: row.status,
+    adminNote: row.admin_note,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 export function localModerateSubmission(id: string, status: "APPROVED" | "REJECTED", adminNote: string | null) {

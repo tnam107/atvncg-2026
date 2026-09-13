@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { localCreateSubmission, localListPublicSubmissions } from "@/lib/local-database";
 import { databaseConfigured, isProduction, prisma } from "@/lib/prisma";
 import { allowRequest } from "@/lib/rate-limit";
+import { createSubmissionTrackingToken, hashSubmissionTrackingToken, stripSubmissionTrackingToken } from "@/lib/submission-token";
 import { submissionSchema } from "@/lib/validation";
 import { normalizeSubmissionMedia } from "@/lib/utils";
 
@@ -69,7 +70,8 @@ export async function POST(request: NextRequest) {
 
   if (!databaseConfigured) {
     if (isProduction) return NextResponse.json({ error: "DATABASE_URL chưa được cấu hình." }, { status: 503 });
-    return NextResponse.json({ item: localCreateSubmission(parsed.data), storage: "sqlite" }, { status: 201 });
+    const trackingToken = createSubmissionTrackingToken();
+    return NextResponse.json({ item: localCreateSubmission(parsed.data, trackingToken), trackingToken, storage: "sqlite" }, { status: 201 });
   }
 
   try {
@@ -80,16 +82,20 @@ export async function POST(request: NextRequest) {
         ? [{ url: submission.mediaUrl, type: submission.mediaType }]
         : [];
     const firstMedia = mediaItems[0];
+    const trackingToken = createSubmissionTrackingToken();
     const item = await prisma.submission.create({
       data: {
         ...submission,
         mediaUrl: firstMedia?.url ?? null,
         mediaType: firstMedia?.type ?? null,
         mediaItems: mediaItems as Prisma.InputJsonValue,
+        trackingTokenHash: hashSubmissionTrackingToken(trackingToken),
       },
     });
+    const publicItem = stripSubmissionTrackingToken(item);
     return NextResponse.json({
-      item: { ...item, mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType) },
+      item: { ...publicItem, mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType) },
+      trackingToken,
     }, { status: 201 });
   } catch (error) {
     console.error("POST /api/submissions", error);

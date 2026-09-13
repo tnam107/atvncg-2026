@@ -37,6 +37,7 @@ model Submission {
   mediaItems    Json?
   proofUrl      String?
   proofFileName String?
+  trackingTokenHash String?       @unique
   status        SubmissionStatus @default(PENDING)
   adminNote     String?          @db.Text
   likesCount    Int              @default(0)

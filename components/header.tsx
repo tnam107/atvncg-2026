@@ -6,6 +6,7 @@ import { Flame, Menu, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import { useIdentity } from "@/components/identity-provider";
 import { cn } from "@/lib/utils";
+import { SubmissionNotifications } from "@/components/submission-notifications";
 
 const links = [
   { href: "/fan-guide", label: "Fan Guide" },
@@ -48,6 +49,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <SubmissionNotifications />
           <button
             type="button"
             onClick={openIdentity}

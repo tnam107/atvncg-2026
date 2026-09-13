@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ADMIN_COOKIE, verifyAdminToken } from "@/lib/admin-auth";
 import { localListAdminSubmissions } from "@/lib/local-database";
 import { databaseConfigured, isProduction, prisma } from "@/lib/prisma";
+import { stripSubmissionTrackingToken } from "@/lib/submission-token";
 import { normalizeSubmissionMedia } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export async function GET() {
     });
     return NextResponse.json({
       items: items.map((item) => ({
-        ...item,
+        ...stripSubmissionTrackingToken(item),
         mediaItems: normalizeSubmissionMedia(item.mediaItems, item.mediaUrl, item.mediaType),
       })),
     });

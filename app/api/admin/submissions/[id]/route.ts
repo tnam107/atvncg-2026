@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ADMIN_COOKIE, verifyAdminToken } from "@/lib/admin-auth";
 import { localDeleteSubmission, localModerateSubmission } from "@/lib/local-database";
 import { databaseConfigured, isProduction, prisma } from "@/lib/prisma";
+import { stripSubmissionTrackingToken } from "@/lib/submission-token";
 import { moderationSchema } from "@/lib/validation";
 
 async function authorized() {
@@ -38,7 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         adminNote: parsed.data.action === "REJECT" ? parsed.data.adminNote : null,
       },
     });
-    return NextResponse.json({ item });
+    return NextResponse.json({ item: stripSubmissionTrackingToken(item) });
   } catch {
     return NextResponse.json({ error: "Không tìm thấy bài viết." }, { status: 404 });
   }

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { artists } from "@/lib/demo-data";
 import { uploadMedia, uploadProof } from "@/lib/cloudinary-upload";
+import { rememberSubmission } from "@/lib/submission-tracking";
 import { mediaTypeSchema, submissionTypeSchema } from "@/lib/validation";
 import type { SubmissionTypeValue } from "@/lib/types";
 
@@ -164,6 +165,15 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
         }),
       });
       const result = await response.json();
+      if (typeof result.trackingToken === "string" && result.item?.id && result.item?.createdAt) {
+        rememberSubmission({
+          token: result.trackingToken,
+          id: result.item.id,
+          type,
+          title: result.item.title || values.title || null,
+          createdAt: result.item.createdAt,
+        });
+      }
       if (!response.ok) throw new Error(result.error || "Không thể gửi bài.");
       toast.success("Gửi thành công! Nội dung đã được lưu và đang chờ Admin duyệt…");
       reset();
