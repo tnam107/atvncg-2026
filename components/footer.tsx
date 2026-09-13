@@ -6,7 +6,10 @@ export function Footer() {
     <footer className="mt-24 border-t border-orange-100 bg-[#fff6e7]">
       <div className="container-shell grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <div className="flex items-center gap-2 text-xl font-black tracking-tight"><Flame size={21} fill="currentColor" className="text-orange-600" />ATVNCG.26</div>
+          <div className="flex items-center gap-2 text-xl font-black tracking-tight">
+            <Flame size={21} fill="currentColor" className="text-orange-600" />
+            <span>ATVNCG<span className="text-orange-600">26</span><span className="ml-1.5 text-[0.62em] tracking-[0.08em] text-stone-700">FANDOM</span></span>
+          </div>
           <p className="mt-4 max-w-sm text-sm leading-6 text-stone-600">Một góc nhỏ do người hâm mộ xây dựng để cất giữ thư, kỷ niệm và những điều tử tế.</p>
           <p className="mt-3 text-xs text-stone-400">Website cộng đồng phi lợi nhuận, không đại diện cho nhà sản xuất.</p>
         </div>

@@ -27,7 +27,9 @@ export function Header() {
           <span className="grid size-9 place-items-center rounded-xl bg-orange-600 text-white shadow-lg shadow-orange-200 transition group-hover:-rotate-6">
             <Flame size={20} fill="currentColor" />
           </span>
-          <span className="text-lg font-black tracking-[-0.04em] text-stone-950">ATVNCG<span className="text-orange-600">.26</span></span>
+          <span className="text-lg font-black tracking-[-0.04em] text-stone-950">
+            ATVNCG<span className="text-orange-600">26</span><span className="ml-1.5 text-[0.62em] tracking-[0.08em] text-stone-700">FANDOM</span>
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Điều hướng chính">
