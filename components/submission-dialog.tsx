@@ -201,7 +201,7 @@ export function SubmissionDialog({ type, buttonLabel = "Gửi bài", buttonVaria
               {selectedTarget === OTHER_TARGET && (
                 <label className="mt-3 block rounded-2xl border border-orange-200 bg-orange-50/60 p-3">
                   <span className="mb-2 block text-xs font-extrabold uppercase tracking-[.12em] text-orange-700">Nhập người nhận</span>
-                  <Input {...register("customTarget")} autoFocus placeholder="Ví dụ: Nhà Mộc, nhóm Anh Tài Tình..." maxLength={80} />
+                  <Input {...register("customTarget")} autoFocus placeholder="Ví dụ: Nhà Bồng Bềnh, nhóm Anh Tài Tình..." maxLength={80} />
                   {errors.customTarget && <span className="mt-1.5 block text-xs font-semibold text-red-600">{errors.customTarget.message}</span>}
                 </label>
               )}
